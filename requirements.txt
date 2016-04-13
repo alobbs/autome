@@ -1,4 +1,5 @@
 Yapsy
 ldap3
 python-dateutil
+tabulate
 webest
