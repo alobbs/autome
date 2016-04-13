@@ -1,0 +1,11 @@
+[Core]
+Name = LDAP Interface
+Module = ldap
+
+[Documentation]
+Author = Alvaro Lopez Ortega
+Website = http://alobbs.com/
+Description = Interface with LDAP servers
+
+[Python]
+Version = 3+

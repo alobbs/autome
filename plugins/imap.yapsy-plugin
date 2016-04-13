@@ -1,0 +1,11 @@
+[Core]
+Name = IMAP Interface
+Module = imap
+
+[Documentation]
+Author = Alvaro Lopez Ortega
+Website = http://alobbs.com/
+Description = Interface with IMAP servers
+
+[Python]
+Version = 3+

@@ -1,0 +1,11 @@
+[Core]
+Name = SMTP Interface
+Module = smtp
+
+[Documentation]
+Author = Alvaro Lopez Ortega
+Website = http://alobbs.com/
+Description = Interface with SMTP servers
+
+[Python]
+Version = 3+
