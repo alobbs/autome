@@ -1,4 +1,4 @@
 Yapsy
 ldap3
-dateutil
+python-dateutil
 webest
