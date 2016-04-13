@@ -86,6 +86,7 @@ class CronJob:
 
     @log_exceptions
     def load_script(self, fullpath):
+        self.time_next = sys.maxsize
         self.script_fp = fullpath
         self.script = load(fullpath)
         self.func = self.script.run
