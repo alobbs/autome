@@ -132,10 +132,30 @@ class CronJob:
     def execute(self, *args):
         return self.execute_guts(*args)
 
+    @staticmethod
+    def format_lapse(secs):
+        tmp = str(datetime.timedelta(seconds=int(secs)))
+        tmp = tmp.replace(', 0:00:00', '')
+
+        p = tmp.split(':', 3)
+        if len(p) == 3:
+            if p[0] == '0' and p[1] == '0':
+                return '%ss' % (p[2])
+            elif p[0] == '0':
+                return '%sm %ss' % (p[1], p[2])
+            else:
+                return '%sh %sm' % (p[0], p[1])
+        return tmp
+
     def get_info(self):
+        nextt = "%s, in %s" % (
+            time.strftime('%H:%M', time.gmtime(self.time_next)),
+            self.format_lapse(self.time_next - time.time())
+        )
+
         return {'name': os.path.basename(self.script_fp),
-                'elapse': '%s secs' % self.script.lapse,
-                'next': '%s secs' % int(self.time_next - time.time()),
+                'elapse': self.format_lapse(self.script.lapse),
+                'next': nextt,
                 'duration': self.duration_last_run,
                 'running': self.running,
                 'executions': self.run_times}
