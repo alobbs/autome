@@ -134,18 +134,30 @@ class CronJob:
 
     @staticmethod
     def format_lapse(secs):
-        tmp = str(datetime.timedelta(seconds=int(secs)))
-        tmp = tmp.replace(', 0:00:00', '')
-
-        p = tmp.split(':', 3)
-        if len(p) == 3:
-            if p[0] == '0' and p[1] == '0':
+        def format_hms(s):
+            p = [int(n) for n in s.split(':', 3)]
+            print(p)
+            if len(p) != 3:
+                return s
+            if p[0] == p[1] == p[2] == 0:
+                return '0s'
+            elif p[0] == p[1] == 0:
                 return '%ss' % (p[2])
-            elif p[0] == '0':
+            elif p[0] == 0:
                 return '%sm %ss' % (p[1], p[2])
             else:
                 return '%sh %sm' % (p[0], p[1])
-        return tmp
+
+        tmp = str(datetime.timedelta(seconds=int(secs)))
+        if ', ' in tmp:
+            days, hms = tmp.split(', ')
+            hmsf = format_hms(hms)
+            if hmsf == '0s':
+                return '%s' % (days)
+            else:
+                return '%s, %s' % (days, hmsf)
+
+        return format_hms(tmp)
 
     def get_info(self):
         nextt = "%s, in %s" % (
@@ -156,8 +168,8 @@ class CronJob:
         return {'name': os.path.basename(self.script_fp),
                 'elapse': self.format_lapse(self.script.lapse),
                 'next': nextt,
-                'duration': self.duration_last_run,
-                'running': self.running,
+                'duration': self.format_lapse(self.duration_last_run),
+                'running': ('no', 'yes')[self.running],
                 'executions': self.run_times}
 
 
