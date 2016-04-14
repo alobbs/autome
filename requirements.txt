@@ -3,3 +3,7 @@ ldap3
 python-dateutil
 tabulate
 webest
+yapsy
+telepot
+gspread
+httplib2
