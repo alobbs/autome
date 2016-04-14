@@ -136,7 +136,6 @@ class CronJob:
     def format_lapse(secs):
         def format_hms(s):
             p = [int(n) for n in s.split(':', 3)]
-            print(p)
             if len(p) != 3:
                 return s
             if p[0] == p[1] == p[2] == 0:
