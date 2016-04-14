@@ -4,6 +4,7 @@ import os
 import yapsy.PluginManager
 
 _mgr = None
+_shared_objs = {}
 
 
 def manager():
@@ -26,11 +27,24 @@ def manager():
 
 
 def _get_one(name):
+    # Global objs
+    global _shared_objs
+    if name in _shared_objs:
+        return _shared_objs[name]
+
+    # Instance
     mgr = manager()
     if name.lower() not in mgr.all:
         return None
 
-    return mgr.all.get(name.lower())
+    o = mgr.all.get(name.lower())
+
+    # Is it a shared obj?
+    is_shared = getattr(o, "SHARED_OBJ", False)
+    if is_shared:
+        _shared_objs[name] = o
+
+    return o
 
 
 def get(*args):

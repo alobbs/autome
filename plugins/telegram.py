@@ -17,6 +17,8 @@ ERROR_NO_USERID = ("You gotta set yourself a name alias "
 
 
 class Telegram(IPlugin):
+    SHARED_OBJ = True
+
     def __init__(self):
         super().__init__()
 
