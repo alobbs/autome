@@ -7,3 +7,4 @@ yapsy
 telepot
 gspread
 httplib2
+oauth2client
