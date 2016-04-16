@@ -39,6 +39,7 @@ def do(args):
     if args.cmd == "jobs":
         print(now + '\n' + table(get("/jobs/list")))
     elif args.cmd == "run":
+        assert args.job, "--job required"
         url = "/jobs/run/{}".format(args.job)
         print(now + '\n' + table(get(url)))
 
@@ -46,14 +47,14 @@ def do(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("cmd", choices=["jobs", "run", "ping"])
-    parser.add_argument("--auto", action="store_true")
+    parser.add_argument("--auto", type=int)
     parser.add_argument("--job")
     args = parser.parse_args()
 
     try:
         do(args)
         while args.auto:
-            time.sleep(5)
+            time.sleep(args.auto)
             print(CLEAR)
             try:
                 do(args)
