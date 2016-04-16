@@ -39,7 +39,6 @@ def load(filepath):
     else:
         m.when = None
 
-    print(filepath, "m.when", m.when, type(m.when))
     return m
 
 
