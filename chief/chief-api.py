@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 import flask
 import ujson as json
 
@@ -36,6 +38,10 @@ def main():
 
 
 if __name__ == "__main__":
+    if not conf.CHIEF_API_DEBUG:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+
     try:
         main()
     except KeyboardInterrupt:
