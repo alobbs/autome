@@ -168,7 +168,7 @@ class CronJob:
                 'next': nextt,
                 'duration': self.format_lapse(self.duration_last_run),
                 'running': ('no', 'yes')[self.running],
-                'executions': self.run_times}
+                'runs': self.run_times}
 
 
 class Cron(threading.Thread):
