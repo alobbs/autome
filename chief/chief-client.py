@@ -8,6 +8,8 @@ import time
 import requests
 import tabulate
 
+CLEAR = "\x1b[2J\x1b[1;1H"
+
 
 def get(path):
     url = "http://localhost:{}".format(conf.CHIEF_API_PORT)
@@ -33,11 +35,12 @@ def table(info, *a, **ka):
 
 
 def do(args):
+    now = time.strftime("%h %d, %H:%M")
     if args.cmd == "jobs":
-        print(table(get("/jobs/list")))
+        print(now + '\n' + table(get("/jobs/list")))
     elif args.cmd == "run":
         url = "/jobs/run/{}".format(args.job)
-        print(table(get(url)))
+        print(now + '\n' + table(get(url)))
 
 
 def main():
@@ -51,8 +54,12 @@ def main():
         do(args)
         while args.auto:
             time.sleep(5)
-            print("\x1b[2J\x1b[1;1H")
-            do(args)
+            print(CLEAR)
+            try:
+                do(args)
+            except requests.exceptions.ConnectionError:
+                now = time.strftime("%h %d, %H:%M")
+                print(now + " - [ERROR] Autome API server not reachable")
     except KeyboardInterrupt:
         pass
 
