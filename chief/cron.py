@@ -206,8 +206,9 @@ class Cron(threading.Thread):
             self.jobs.append(job)
 
     def jobs_get_info(self):
+        sjobs = sorted(self.jobs, key=lambda c: c.time_next)
         info = []
-        for j in self.jobs:
+        for j in sjobs:
             info.append(j.get_info())
         return info
 
