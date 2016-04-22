@@ -27,7 +27,7 @@ class Telegram(IPlugin):
 
         # Instance
         self.bot = telepot.Bot(self.conf['BOT_TOKEN'])
-        self.bot.notifyOnMessage(self._msg_received)
+        self.bot.message_loop(self._msg_received)
 
     def reply_command(self, userid, command, live=True):
         # All in one message
