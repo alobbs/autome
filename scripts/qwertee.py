@@ -1,14 +1,13 @@
 import plugin
 import webest as w
 
-when = '9am'
-lapse = '24h'
-telegram, smtp = plugin.get("telegram", "smtp")
-TMP = "/tmp/qwertee.png"
+when, lapse = '9am', '24h'
+telegram, smtp, util = plugin.get("telegram", "smtp", "util")
 
 
 def run():
     crop = (0, 100, 1350, 735)
-    w.screenshot.save("https://www.qwertee.com/", TMP, crop=crop)
-    telegram.send_me_picture(TMP)
-    smtp.send_files("alvaro@alobbs.com", TMP)
+    with util.tmp_fp(suffix='.png') as tmp_fp:
+        w.screenshot.save("https://www.qwertee.com/", tmp_fp, crop=crop)
+        telegram.send_me_picture(tmp_fp)
+        smtp.send_files("alvaro@alobbs.com", tmp_fp)
