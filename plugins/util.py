@@ -1,5 +1,6 @@
 import contextlib
 import os
+import shutil
 import sys
 import tempfile
 
@@ -25,5 +26,31 @@ class Util(IPlugin):
         try:
             os.close(fd)
             os.unlink(path)
+        except FileNotFoundError:
+            pass
+
+    @staticmethod
+    @contextlib.contextmanager
+    def tmpdir_fp(**kw):
+        path = tempfile.mkdtemp(**kw)
+        yield path
+        try:
+            shutil.rmtree(path)
+        except FileNotFoundError:
+            pass
+
+    @staticmethod
+    @contextlib.contextmanager
+    def work_in_tmpdir(**kw):
+        # Pre: Get dir, Create new, cd it
+        orig = os.getcwd()
+        path = tempfile.mkdtemp(**kw)
+        os.chdir(path)
+        yield path
+
+        # Post: Go back, rm -rf tmp dir
+        os.chdir(orig)
+        try:
+            shutil.rmtree(path)
         except FileNotFoundError:
             pass
