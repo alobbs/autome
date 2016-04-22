@@ -11,13 +11,15 @@ class GSpreadsheet(IPlugin):
 
     def __init__(self):
         super().__init__()
-
-        # Read conf
-        creds_json = pluginconf.get_path("google")
-        self.credentials = oauth2client.service_account.ServiceAccountCredentials.from_json_keyfile_name(creds_json, self.SCOPE)
-        self.gc = gspread.authorize(self.credentials)
+        self.credentials = None
+        self.gc = None
 
     def open(self, name):
+        if not self.credentials:
+            creds_json = pluginconf.get_path("google")
+            self.credentials = oauth2client.service_account.ServiceAccountCredentials.from_json_keyfile_name(creds_json, self.SCOPE)
+            self.gc = gspread.authorize(self.credentials)
+
         if self.credentials.access_token_expired:
             self.credentials.refresh(httplib2.Http())
             self.gc = gspread.authorize(self.credentials)
