@@ -1,0 +1,11 @@
+[Core]
+Name = Autome Utils
+Module = util
+
+[Documentation]
+Author = Alvaro Lopez Ortega
+Website = http://alobbs.com/
+Description = Misc Utility Functions
+
+[Python]
+Version = 3+
