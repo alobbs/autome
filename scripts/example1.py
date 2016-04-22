@@ -4,9 +4,9 @@ import plugin
 FWD_FROM = "aortega@redhat.com"
 FWD_TO = "alvaro@alobbs.com"
 
+lapse = 1300
 imap, smtp, tele = plugin.get("imap", "smtp", "telegram")
 
-lapse = 1300
 
 def run():
     for msg in imap.get_new_msgs('INBOX', '(TEXT alvaro@alobbs.com)'):
