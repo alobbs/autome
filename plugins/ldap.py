@@ -46,6 +46,11 @@ class LDAP(IPlugin):
                 self._objs = json.load(f)
         return iter(self._objs)
 
+    def find_by_dn(self, dn):
+        for o in self.objs:
+            if o.get('dn') == dn:
+                return o
+
     def find_by_attr(self, attr, s):
         found = []
         for o in self.objs:
@@ -62,3 +67,19 @@ class LDAP(IPlugin):
                 if f not in found:
                     found.append(f)
         return found
+
+    def __iter__(self):
+        return self.objs
+        return iter(self._objs)
+
+    def get_report_chain(self, search):
+        levels = []
+        found = self.find(search)[0]
+        ma = found.get('attributes', {}).get('manager', [None])[0]
+
+        while ma:
+            levels.append(ma)
+            found = self.find_by_dn(ma)
+            ma = found.get('attributes', {}).get('manager', [None])[0]
+
+        return levels
