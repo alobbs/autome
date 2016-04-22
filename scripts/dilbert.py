@@ -1,8 +1,7 @@
 import plugin
 import webest as w
 
-when = '4pm'
-lapse = '24h'
+when, lapse = '4pm', '24h'
 telegram = plugin.get("telegram")
 
 

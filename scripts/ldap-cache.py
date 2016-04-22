@@ -1,7 +1,7 @@
 import plugin
 
+when, lapse = "3am", "24h"
 ldap = plugin.get("ldap")
-lapse = "24h"
 
 
 def run():
