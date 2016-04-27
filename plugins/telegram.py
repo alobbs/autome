@@ -16,7 +16,41 @@ ERROR_NO_USERID = ("You gotta set yourself a name alias "
                    "if you wanna talk to me.")
 
 
+class Keyboard:
+    def __init__(self, items_per_line=3):
+        self._markup = None
+        self._keyboard = []
+        self.items_per_line = items_per_line
+
+    # Guts
+    def _get_markup(self):
+        if self._markup:
+            return self._markup
+
+        if self._keyboard:
+            return telepot.namedtuple.ReplyKeyboardMarkup(keyboard=[self._keyboard])
+
+    def get_message_params(self, text):
+        return dict(text=text, reply_markup=self._get_markup())
+
+    # Public
+    def hide_keyboard(self):
+        self._markup = telepot.namedtuple.ReplyKeyboardHide()
+
+    def add(self, text, request_location=False, request_contact=False):
+        if request_location:
+            button = telepot.namedtuple.KeyboardButton(text=text, request_location=True)
+            return self._keyboard.append(button)
+        if request_contact:
+            button = dict(text=text, request_contact=True)
+            return self._keyboard.append(button)
+        return self._keyboard.append(text)
+
+
 class Telegram(IPlugin):
+    # Embedded class refs
+    Keyboard = Keyboard
+
     def __init__(self):
         super().__init__()
 
