@@ -8,8 +8,9 @@ import threading
 import time
 import traceback
 
-import conf
 import dateutil.parser
+
+import conf
 
 
 def load(filepath):
@@ -69,9 +70,71 @@ def log_exceptions(func):
             with open(log_fp, 'a+') as lf:
                 lf.write("[%s]: Starts {\n" % time_start)
                 lf.write(logged)
-                lf.write("[%s]: } Ends\n" % self.time())
+                lf.write("[%s]: } Ends\n" % time_str())
 
     return wrapper
+
+
+def format_lapse(secs):
+    def format_hms(s):
+        p = [int(n) for n in s.split(':', 3)]
+        if len(p) != 3:
+            return s
+        if p[0] == p[1] == p[2] == 0:
+            return '0s'
+        elif p[0] == p[1] == 0:
+            return '%ss' % (p[2])
+        elif p[0] == 0:
+            return '%sm %ss' % (p[1], p[2])
+        else:
+            return '%sh %sm' % (p[0], p[1])
+
+    tmp = str(datetime.timedelta(seconds=int(secs)))
+    if ', ' in tmp:
+        days, hms = tmp.split(', ')
+        hmsf = format_hms(hms)
+        if hmsf == '0s':
+            return '%s' % (days)
+        else:
+            return '%s, %s' % (days, hmsf)
+
+    return format_hms(tmp)
+
+
+class ThreadJob(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.run_times = 0
+        self.errors = 0
+        self.script_fp = None
+        self.time_start = time.time()
+
+    @log_exceptions
+    def load_script(self, fullpath):
+        self.script_fp = fullpath
+        self.script = load(fullpath)
+        self.func = self.script.run
+
+    @log_exceptions
+    def run_func(self):
+        # Keep this call as a method so @log_exceptions() is executed before
+        # exceptions are caught by the mainloop's try:catch block and ignored
+        return self.func()
+
+    def run(self):
+        while True:
+            self.run_times += 1
+            try:
+                self.run_func()
+            except Exception:
+                self.errors += 1
+
+    def get_info(self):
+        return {'name': os.path.basename(self.script_fp),
+                'duration': format_lapse(time.time() - self.time_start),
+                'runs': self.run_times,
+                'running': 'yes',
+                'elapse': "*"}
 
 
 class CronJob:
@@ -123,50 +186,20 @@ class CronJob:
         self.running = False
         return re
 
-    @staticmethod
-    def time():
-        return time.strftime("%d-%m-%y %H:%M")
-
     @log_exceptions
     def execute(self, *args):
         return self.execute_guts(*args)
 
-    @staticmethod
-    def format_lapse(secs):
-        def format_hms(s):
-            p = [int(n) for n in s.split(':', 3)]
-            if len(p) != 3:
-                return s
-            if p[0] == p[1] == p[2] == 0:
-                return '0s'
-            elif p[0] == p[1] == 0:
-                return '%ss' % (p[2])
-            elif p[0] == 0:
-                return '%sm %ss' % (p[1], p[2])
-            else:
-                return '%sh %sm' % (p[0], p[1])
-
-        tmp = str(datetime.timedelta(seconds=int(secs)))
-        if ', ' in tmp:
-            days, hms = tmp.split(', ')
-            hmsf = format_hms(hms)
-            if hmsf == '0s':
-                return '%s' % (days)
-            else:
-                return '%s, %s' % (days, hmsf)
-
-        return format_hms(tmp)
-
     def get_info(self):
         nextt = "%s, in %s" % (
             time.strftime('%H:%M', time.gmtime(self.time_next)),
-            self.format_lapse(self.time_next - time.time())
+            format_lapse(self.time_next - time.time())
         )
 
         return {'name': os.path.basename(self.script_fp),
-                'elapse': self.format_lapse(self.script.lapse),
+                'elapse': format_lapse(self.script.lapse),
                 'next': nextt,
-                'duration': self.format_lapse(self.duration_last_run),
+                'duration': format_lapse(self.duration_last_run),
                 'running': ('no', 'yes')[self.running],
                 'runs': self.run_times}
 
@@ -174,6 +207,7 @@ class CronJob:
 class Cron(threading.Thread):
     def __init__(self):
         self.jobs = []
+        self.threads = []
         self.lapse = 10
         threading.Thread.__init__(self)
         # Don't do anything here: Exec'ed twice
@@ -192,11 +226,9 @@ class Cron(threading.Thread):
                 if job.exec_time():
                     job.execute()
 
-    def load_jobs(self, path=None):
-        if not path:
-            path = conf.CHIEF_API_JOBS_PATH
-
-        path = os.path.normpath(path)
+    def load_jobs(self):
+        # Scripts
+        path = os.path.normpath(conf.CHIEF_API_SCRIPTS_PATH)
         srcroot = os.path.normpath(__file__ + '/../../')
         sys.path.insert(0, srcroot)
 
@@ -205,11 +237,29 @@ class Cron(threading.Thread):
             job.load_script(job_file)
             self.jobs.append(job)
 
+        # Threads
+        path = os.path.normpath(conf.CHIEF_API_THREADS_PATH)
+        srcroot = os.path.normpath(__file__ + '/../../')
+        sys.path.insert(0, srcroot)
+
+        for job_file in glob.glob(path + "/*.py"):
+            thr = ThreadJob()
+            thr.load_script(job_file)
+            self.threads.append(thr)
+            thr.start()
+
     def jobs_get_info(self):
-        sjobs = sorted(self.jobs, key=lambda c: c.time_next)
         info = []
+
+        # Jobs
+        sjobs = sorted(self.jobs, key=lambda c: c.time_next)
         for j in sjobs:
             info.append(j.get_info())
+
+        # Threads
+        for t in self.threads:
+            info.append(t.get_info())
+
         return info
 
     def force_run_job(self, script_name):
