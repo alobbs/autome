@@ -28,7 +28,7 @@ def table(info, *a, **ka):
         headers = sorted(info[0].keys())
         values = []
         for e in info:
-            values.append([e[k] for k in headers])
+            values.append([e.get(k, '') for k in headers])
         return tabulate.tabulate(values, headers, *a, **ka)
 
     return tabulate.tabulate(info, *a, **ka)
