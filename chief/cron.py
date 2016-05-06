@@ -126,6 +126,7 @@ class ThreadJob(threading.Thread):
             self.run_times += 1
             try:
                 self.run_func()
+                time.sleep(5)  # safe
             except Exception:
                 self.errors += 1
 
@@ -135,6 +136,19 @@ class ThreadJob(threading.Thread):
                 'runs': self.run_times,
                 'running': 'yes',
                 'elapse': "*"}
+
+
+class PyProgJob(ThreadJob):
+    def __init__(self):
+        ThreadJob.__init__(self)
+
+    @log_exceptions
+    def load_script(self, fullpath):
+        self.script_fp = fullpath
+
+    @log_exceptions
+    def run_func(self):
+        os.system(self.script_fp)
 
 
 class CronJob:
@@ -245,6 +259,12 @@ class Cron(threading.Thread):
         for job_file in glob.glob(path + "/*.py"):
             thr = ThreadJob()
             thr.load_script(job_file)
+            self.threads.append(thr)
+            thr.start()
+
+        for run_file in glob.glob(path + "/*/run.py"):
+            thr = PyProgJob()
+            thr.load_script(run_file)
             self.threads.append(thr)
             thr.start()
 
