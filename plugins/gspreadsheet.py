@@ -2,15 +2,13 @@ import gspread
 import httplib2
 import oauth2client.service_account
 import pluginconf
-from yapsy.IPlugin import IPlugin
 
 
-class GSpreadsheet(IPlugin):
+class GSpreadsheet:
     SCOPE = ['https://docs.google.com/feeds',
              'https://spreadsheets.google.com/feeds']
 
     def __init__(self):
-        super().__init__()
         self.credentials = None
         self.gc = None
 

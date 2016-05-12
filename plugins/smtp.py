@@ -10,13 +10,10 @@ import os
 import smtplib
 
 import pluginconf
-from yapsy.IPlugin import IPlugin
 
 
-class SMTP(IPlugin):
+class SMTP:
     def __init__(self):
-        super().__init__()
-
         # Read conf
         self.conf = pluginconf.get('smtp')
 

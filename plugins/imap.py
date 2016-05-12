@@ -3,13 +3,10 @@ import imaplib
 import time
 
 import pluginconf
-from yapsy.IPlugin import IPlugin
 
 
-class IMAP(IPlugin):
+class IMAP:
     def __init__(self):
-        super().__init__()
-
         self.conn = None
         self._known_msgs = {}
 

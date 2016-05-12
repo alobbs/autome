@@ -4,14 +4,12 @@ import shutil
 import ldap3
 import pluginconf
 import ujson as json
-from yapsy.IPlugin import IPlugin
 
 FIND_ATTRIBUTES = ('cn', 'mail', 'displayName', 'givenName', 'sn', 'uid')
 
 
-class LDAP(IPlugin):
+class LDAP:
     def __init__(self):
-        super().__init__()
         self._objs = None
 
         # Read conf

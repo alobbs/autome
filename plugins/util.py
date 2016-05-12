@@ -4,13 +4,8 @@ import shutil
 import sys
 import tempfile
 
-from yapsy.IPlugin import IPlugin
 
-
-class Util(IPlugin):
-    def __init__(self):
-        super().__init__()
-
+class Util:
     @staticmethod
     def screenshot(path):
         if sys.platform == 'darwin':

@@ -1,50 +1,39 @@
+import imp
 import logging
 import os
 
-import yapsy.PluginManager
-
-_mgr = None
 _shared_objs = {}
 
 
-def manager():
-    global _mgr
-
-    if not _mgr:
-        # Path to plugins
-        here = os.path.dirname(os.path.abspath(__file__))
-        plugins_dir = os.path.join(here, "plugins")
-
-        # Plugin manager
-        _mgr = yapsy.PluginManager.PluginManager()
-        _mgr.setPluginPlaces([plugins_dir])
-
-    # Refresh
-    _mgr.collectPlugins()
-    _mgr.all = {p.plugin_object.__class__.__name__.lower():
-                p.plugin_object for p in _mgr.getAllPlugins()}
-    return _mgr
-
-
 def _get_one(name):
-    # Global objs
     global _shared_objs
+
+    # Build path
+    here = os.path.dirname(os.path.abspath(__file__))
+    plugins_dir = os.path.join(here, "plugins")
+    filepath = os.path.join(plugins_dir, '%s.py' % name)
+
+    # Load plug-in
+    with open(filepath, 'r') as f:
+        p = imp.load_module(name, f, filepath, ('py', 'r', imp.PY_SOURCE))
+
+    # Cached obj?
     if name in _shared_objs:
         return _shared_objs[name]
 
-    # Instance
-    mgr = manager()
-    if name.lower() not in mgr.all:
-        return None
+    obj = None
+    for n in dir(p):
+        if n.lower() == name.lower():
+            obj = getattr(p, n)()
 
-    o = mgr.all.get(name.lower())
+    assert obj, "Class not found"
 
-    # Is it a shared obj?
-    is_shared = getattr(o, "SHARED_OBJ", False)
+    # Cache obj?
+    is_shared = getattr(obj, "SHARED_OBJ", False)
     if is_shared:
-        _shared_objs[name] = o
+        _shared_objs[name] = obj
 
-    return o
+    return obj
 
 
 def get(*args):

@@ -5,8 +5,6 @@ import urllib.parse
 import pluginconf
 import requests
 import telepot
-from yapsy.IPlugin import IPlugin
-
 
 ERROR_USER_UNKNOWN = ("I don't know you, but I'll tell you something. "
                       "Sometimes, I use words that I don't "
@@ -47,13 +45,11 @@ class Keyboard:
         return self._keyboard.append(text)
 
 
-class Telegram(IPlugin):
+class Telegram:
     # Embedded class refs
     Keyboard = Keyboard
 
     def __init__(self):
-        super().__init__()
-
         # Read configuration
         self.conf = pluginconf.get('telegram')
 
