@@ -3,8 +3,9 @@
 import sys
 import time
 
+CRASH = False
+
 for n in range(1, sys.maxsize):
-    print("test #{}".format(n))
-    if n % 100 == 0:
-        CRASH = 1/0
+    if CRASH and n % 100 == 0:
+        0/0
     time.sleep(.05)
