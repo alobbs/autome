@@ -1,10 +1,15 @@
+import glob
 import os
 import tempfile
 import urllib.parse
 
+import plugin
 import pluginconf
 import requests
 import telepot
+
+util = plugin.get("util")
+
 
 ERROR_USER_UNKNOWN = ("I don't know you, but I'll tell you something. "
                       "Sometimes, I use words that I don't "
@@ -56,6 +61,15 @@ class Telegram:
         # Instance
         self.bot = telepot.Bot(self.conf['BOT_TOKEN'])
         self.bot.message_loop(self._msg_received)
+        self._youtube_dl_sites = None
+
+    @property
+    def youtube_dl_sites(self):
+        if not self._youtube_dl_sites:
+            with os.popen("youtube-dl --list-extractors", 'r') as f:
+                tmp_all = [d.strip().split(':')[0] for d in f.readlines()]
+                self._youtube_dl_sites = list(set(tmp_all))
+        return self._youtube_dl_sites
 
     def reply_command(self, userid, command, live=True):
         # All in one message
@@ -99,6 +113,27 @@ class Telegram:
     def send_msg(self, user_id, msg):
         self.bot.sendMessage(user_id, msg)
 
+    def send_video(self, user_id, path, caption=None):
+        # Youtube-dl
+        if 'http' in path:
+            supported = any([d in path for d in self.youtube_dl_sites])
+            if supported:
+                with util.tmpdir_fp() as tmpdir:
+                    # Download video
+                    dest = '{}/%(title)s-%(id)s.%(ext)s'.format(tmpdir)
+                    cmd = "youtube-dl '{}' -o '{}'".format(path, dest)
+                    os.system(cmd)
+
+                    # Send video
+                    for fp in glob.glob('%s/*' % tmpdir):
+                        with open(fp, 'rb') as f:
+                            self.bot.sendVideo(user_id, f, caption=caption)
+            return
+
+        # Local file
+        with open(path, 'rb') as f:
+            self.bot.sendVideo(user_id, f, caption=caption)
+
     def send_picture(self, user_id, path, caption=None, tmp_suffix=None):
         # HTTP
         if path.startswith('http://') or path.startswith("https://"):
@@ -131,3 +166,6 @@ class Telegram:
 
     def send_me_picture(self, *args, **kwargs):
         return self.send_picture(self.conf['ME_ID'], *args, **kwargs)
+
+    def send_me_video(self, *args, **kwargs):
+        return self.send_video(self.conf['ME_ID'], *args, **kwargs)
