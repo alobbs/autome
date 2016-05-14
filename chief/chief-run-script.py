@@ -16,7 +16,7 @@ sys.path += [dir_chief, dir_base]
 def main():
     # Parse parameters
     parser = argparse.ArgumentParser()
-    parser.add_argument("script")
+    parser.add_argument("script", help="Fullpath to script")
     args = parser.parse_args()
 
     # Run script
