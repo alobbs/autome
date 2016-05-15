@@ -20,7 +20,7 @@ ERROR_NO_USERID = ("You gotta set yourself a name alias "
 
 
 class Keyboard:
-    def __init__(self, items_per_line=3):
+    def __init__(self, items_per_line=1):
         self._markup = None
         self._keyboard = []
         self.items_per_line = items_per_line
@@ -31,7 +31,13 @@ class Keyboard:
             return self._markup
 
         if self._keyboard:
-            return telepot.namedtuple.ReplyKeyboardMarkup(keyboard=[self._keyboard])
+            # Split in rows
+            n = max(1, self.items_per_line)
+            kb = [self._keyboard[i:i + n]
+                  for i in range(0, len(self._keyboard), n)]
+
+            # Send keyboard
+            return telepot.namedtuple.ReplyKeyboardMarkup(keyboard=kb)
 
     def get_message_params(self, text):
         return dict(text=text, reply_markup=self._get_markup())
@@ -40,12 +46,19 @@ class Keyboard:
     def hide_keyboard(self):
         self._markup = telepot.namedtuple.ReplyKeyboardHide()
 
-    def add(self, text, request_location=False, request_contact=False):
+    def add(self, text, request_location=False, request_contact=False,
+            callback_data=None, url=None):
         if request_location:
             button = telepot.namedtuple.KeyboardButton(text=text, request_location=True)
             return self._keyboard.append(button)
         if request_contact:
             button = dict(text=text, request_contact=True)
+            return self._keyboard.append(button)
+        if url:
+            button = dict(text=text, url=url)
+            return self._keyboard.append(button)
+        if callback_data:
+            button = dict(text=text, callback_data=callback_data)
             return self._keyboard.append(button)
         return self._keyboard.append(text)
 
@@ -105,7 +118,7 @@ class Telegram:
         """
         first = msg['text'].split(' ')[0]
         if first == "ping":
-            self._reply_command(userid, "ping -c 2 home.corp.redhat.com", False)
+            self._reply_comman(userid, "ping -c 2 home.corp.redhat.com", False)
         else:
             self.bot.sendMessage(userid, "Am not sure what you want me to do")
         """
